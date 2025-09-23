@@ -1,0 +1,1116 @@
+<<!DOCTYPE html> 
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>PLANIFICACIÓN DE EVENTOS</title>
+   <link rel="icon" type="image/png" href="img/logo-tigre.png">
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Select2 + tema Bootstrap 5 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
+
+  <!-- SweetAlert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    body { font-family: 'Roboto', 'Open Sans', Arial, sans-serif; background-color: #ffffff; color: #1D2B4F; }
+    .logo-tigre { height: 60px; object-fit: contain; }
+    .logo-unemi { height: 50px; object-fit: contain; }
+    .franja-superior { background-color: #1D2B4F; color: white; font-size: 22px; font-weight: bold; }
+    .franja-naranja { height: 10px; background-color: #F39200; }
+    .titulo-seccion { background-color: #e5e5e5; font-weight: bold; padding: 10px 15px; border-radius: 6px; font-size: 16px; margin-bottom: 20px; }
+    .table-wrapper { overflow-x: auto; }
+  </style>
+</head>
+<body>
+<!-- Encabezado -->
+<div class="franja-superior d-flex justify-content-between align-items-center px-3">
+  <div class="d-flex align-items-center">
+    <img src="img/logo-tigre.png" alt="Logo Tigre" class="logo-tigre">
+  </div>
+  <div class="text-center flex-grow-1">
+    <h2 class="fw-bold m-2" style="color:white;">Planificación de Eventos</h2>
+  </div>
+   <div class="d-flex align-items-center justify-content-end">
+     <img src="img/logo-unemi.png" alt="Logo UNEMI" class="logo-unemi">
+  </div>
+</div>
+<div class="franja-naranja"></div>
+
+<!-- Contenido -->
+<div class="container mt-4">
+  <div class="form-narrow"><!-- TODO dentro va con el mismo ancho -->
+
+    <form id="formularioEvento">
+      <div class="titulo-seccion mb-3">DATOS SOLICITANTE</div>
+
+      <!-- 2 campos por fila -->
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-lg-6">
+          <label class="form-label fw-bold mb-1">Solicitante:</label>
+          <input type="text" class="form-control" id="solicitante" placeholder="Ingrese el Nombre Completo" required>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <label class="form-label fw-bold mb-1">Modalidad del evento:</label>
+          <select class="form-select" id="modalidad" required>
+            <option value="">Seleccione</option>
+            <option value="Presencial" selected>Presencial</option>
+            <option value="Virtual">Virtual</option>
+            <option value="Híbrido">Híbrido</option>
+            <option value="Externo">Externo</option> <!-- *** NUEVO -->
+          </select>
+        </div>
+      </div>
+
+      <div class="row g-3 align-items-end mt-0">
+        <div class="col-12 col-lg-6">
+          <label for="departamento" class="form-label fw-bold mb-1">Unidad académica o administrativa:</label>
+          <select class="form-select" id="departamento" required style="width:100%;">
+            <option value="">Seleccione una Unidad</option>
+          </select>
+        </div>
+
+        <div class="col-12 col-lg-6">
+          <label class="form-label fw-bold mb-1">Correo institucional:</label>
+          <input type="email" class="form-control" id="correo" required>
+        </div>
+      </div>
+
+      <!-- Mismo ancho para el bloque inferior -->
+      <div class="titulo-seccion d-flex justify-content-between align-items-center mt-4">
+        DETALLE DE EVENTOS
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="mostrarFormularioDetalle()">+ Añadir evento</button>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table table-bordered mt-4 text-center">
+          <thead class="table-secondary">
+            <tr>
+              <th>Nombre Evento</th>
+              <th>Categoría</th>
+              <th>Tipo Evento</th>
+              <th>Modalidad</th>
+              <th>Espacio</th>
+              <th>Fecha Inicio</th>
+              <th>Fecha Fin</th>
+              <th>Hora Inicio</th>
+              <th>Hora Fin</th>
+              <th>Participantes</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tablaResumen"></tbody>
+        </table>
+      </div>
+
+      <div id="contenedorBotonEnviar" class="text-end mt-4" style="display: none;">
+        <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Detalle fuera del form -->
+<div id="detalleEvento" style="display:none;" class="container mt-4"></div>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbwdPB0IAR_w5V2A-vqp3oPtbkARp4dIdda1akAVu34XtlTx5DnVfEKS9GrJfsufXqf0VQ/exec";
+
+const tiposPorCategoria = {
+  "Eventos Solemnes": [
+    "Sesión Solemne de Aniversario Institucional",
+    "Audiencia Pública de Rendición de Cuentas, dispuesta por el Consejo de Participación Ciudadana y Control Social",
+    "Aniversario de fundación de las facultades",
+    "Ceremonias de graduación de grado y posgrado",
+    "Ceremonia Honoris Causa"
+  ],
+  "Eventos Institucionales": [
+    "Congresos, seminarios, simposios, encuentros, foros, talleres o jornadas, entre otros.",
+    "Socialización de planes de las unidades organizacionales",
+    "Ceremonia de bienvenida al inicio de periodo académico",
+    "Casas abiertas de las facultades",
+    "Socialización de resultados de actividades y/o proyectos de vinculación e investigación",
+    "Entrega de Reconocimiento por rendimiento académico",
+    "Inauguración de obras",
+    "Momento Cívico"
+  ],
+  "Eventos Interinstitucionales": ["Firma de convenios interinstitucionales y/o de cooperación interinstitucional","Eventos que sean organizados por otras instituciones"],
+  "Eventos Culturales y Deportivos": ["Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Novatada Cultural Institucional","Campeonatos internos y externos"]
+};
+
+// Espacios permitidos por tipo de evento
+const eventosPorEspacio = {
+  "Auditorio W": [
+    "Sesión Solemne de Aniversario Institucional", "Audiencia Pública de Rendición de Cuentas", "Aniversario de fundación de las facultades",
+    "Ceremonia Honoris Causa", "Ceremonias de graduación de grado y posgrado", "Congresos", "Socialización",
+    "Entrega de Reconocimiento", "Firma de convenios", "Momento Cívico", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Eventos que sean organizados por otras instituciones",
+  ],
+  "Plazoleta": ["Ceremonia de bienvenida al inicio de periodo académico", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Casas abiertas de las facultades"],
+  "Ágora del Corredor Cultural": ["Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Novatada Cultural Institucional", "Casas abiertas de las facultades"],
+  "Auditorio V": ["Congresos", "Socialización", "Entrega de Reconocimiento"],
+  "Auditorio A": ["Congresos", "Socialización", "Festival Internacional de Teatro Uniendo Pueblos FITUP","Entrega de Reconocimiento"],
+  "Plaza de Integración": ["Ceremonia de bienvenida al inicio de periodo académico", "Casas abiertas de las facultades","Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP","Novatada Cultural Institucional"],
+  "Polideportivo": ["Campeonatos internos y externos"],
+  "Estadio Universitario": ["Campeonatos internos y externos"]
+};
+
+// Invertir a (Evento -> Espacios)
+const espaciosPorEvento = {};
+for (const espacio in eventosPorEspacio) {
+  const nombreEspacioCorrecto = espacio;
+  eventosPorEspacio[espacio].forEach(eventoBase => {
+    const eventoNormalizado = eventoBase.trim().toLowerCase();
+    if (!espaciosPorEvento[eventoNormalizado]) espaciosPorEvento[eventoNormalizado] = [];
+    if (!espaciosPorEvento[eventoNormalizado].includes(nombreEspacioCorrecto)) {
+      espaciosPorEvento[eventoNormalizado].push(nombreEspacioCorrecto);
+    }
+  });
+}
+
+const capacidadesMaximas = {
+  "Auditorio A": 234,
+  "Auditorio V": 117,
+  "Auditorio W": 336,
+  "Ágora del Corredor Cultural": 400,
+  "Plazoleta": 500,
+  "Plaza de Integración": 300
+};
+const espaciosSinLimite = new Set(["Polideportivo", "Estadio Universitario"]);
+
+// Variables globales
+let eventos = [];
+let editarIndex = -1;
+
+// Unidades
+const unidades = [
+  {"codigo":1,"text":"Dirección de Planificación Institucional"},
+  {"codigo":2,"text":"Dirección de Aseguramiento de la Calidad"},
+  {"codigo":3,"text":"Secretaría General"},
+  {"codigo":4,"text":"Dirección de Tecnología de la Información y Comunicaciones"},
+  {"codigo":5,"text":"Dirección de Operaciones Tecnológicas y de Laboratorios"},
+  {"codigo":6,"text":"Dirección Administrativa"},
+  {"codigo":7,"text":"Dirección de Seguridad Informática"},
+  {"codigo":8,"text":"Dirección de Talento Humano"},
+  {"codigo":9,"text":"Dirección de Bienestar Universitario"},
+  {"codigo":10,"text":"Procuraduría"},
+  {"codigo":11,"text":"Auditoría Interna"},
+  {"codigo":12,"text":"Dirección Jurídica"},
+  {"codigo":13,"text":"Dirección de Comunicación Institucional"},
+  {"codigo":14,"text":"Centro de Estudios Estadísticos de la UNEMI"},
+  {"codigo":15,"text":"Dirección Financiera"},
+  {"codigo":16,"text":"Dirección de Mantenimientos Menores y Servicios Generales"},
+  {"codigo":17,"text":"Dirección de Obras Universitarias"},
+  {"codigo":18,"text":"Centro de Recursos para el Aprendizaje y la Investigación"},
+  {"codigo":19,"text":"Dirección de Relaciones Interinstitucionales"},
+  {"codigo":20,"text":"Dirección de Sedes Extenciones y Centros de Apoyo"},
+  {"codigo":21,"text":"Facultad de Vinculación"},
+  {"codigo":22,"text":"Escuela de Formación y Emprendimiento"},
+  {"codigo":23,"text":"Dirección de Espacios de Simulación"},
+  {"codigo":24,"text":"Centro para la Formación y Promoción del Deporte Universitario"},
+  {"codigo":25,"text":"Consultorio Jurídico Gratuito de la UNEMI"},
+  {"codigo":26,"text":"Facultad de Investigación"},
+  {"codigo":27,"text":"Escuela de Formación en Investigación"},
+  {"codigo":28,"text":"Facultad de Posgrados"},
+  {"codigo":29,"text":"Escuela de Negocios"},
+  {"codigo":30,"text":"Escuela de Educación"},
+  {"codigo":31,"text":"Escuela de Ciencias e Ingenierías"},
+  {"codigo":32,"text":"Escuela de Salud"},
+  {"codigo":33,"text":"Escuela de Derecho"},
+  {"codigo":34,"text":"Escuela de Doctorados"},
+  {"codigo":35,"text":"Dirección de Gestión y Servicios Académicos"},
+  {"codigo":36,"text":"Dirección de Evaluación y Perfeccionamiento Académico"},
+  {"codigo":37,"text":"Dirección de Innovación y Procesos Académicos"},
+  {"codigo":38,"text":"Facultad de Ciencias e Ingenierías"},
+  {"codigo":39,"text":"Facultad de Ciencias Sociales, Educación Comercial y Derecho"},
+  {"codigo":40,"text":"Facultad de Salud y Servicios Sociales"},
+  {"codigo":41,"text":"Facultad de Educación"},
+  {"codigo":42,"text":"Rectorado"},
+  {"codigo":43,"text":"Vicerrectorado de Vinculación"},
+  {"codigo":44,"text":"Vicerrectorado de Investigación y de Posgrado"},
+  {"codigo":45,"text":"Vicerrectorado Académico de Formación de Grado"}
+];
+
+// === Carga e inicializa Select2 ===
+function cargarUnidades() {
+  const select = document.getElementById('departamento');
+  select.innerHTML = '<option value="">Seleccione una Unidad</option>';
+  unidades.forEach(u => {
+    const opt = document.createElement('option');
+    opt.value = u.text;
+    opt.textContent = u.text;
+    select.appendChild(opt);
+  });
+
+  if ($(select).hasClass('select2-hidden-accessible')) {
+    $(select).select2('destroy');
+  }
+
+  $('#departamento').select2({
+    theme: 'bootstrap-5',
+    width: '100%',
+    placeholder: 'Seleccione o escriba una Unidad',
+    allowClear: true,
+    language: 'es',
+    tags: true
+  });
+}
+
+// >>> VALIDACIÓN OBLIGATORIA: helpers de required condicional
+function isVisible(el) {
+  if (!el) return false;
+  const style = window.getComputedStyle(el);
+  return style.display !== 'none' && style.visibility !== 'hidden';
+}
+function setRequired(el, required) {
+  if (!el) return;
+  if (required) {
+    el.setAttribute('required', 'required');
+  } else {
+    el.removeAttribute('required');
+  }
+}
+function requiredIfEnabledVisible(el, required) {
+  if (!el) return;
+  if (!el.disabled && isVisible(el)) {
+    setRequired(el, required);
+  } else {
+    setRequired(el, false);
+  }
+}
+
+/* ====== FIX #1: mantener selección previa de espacio ====== */
+function actualizarEspaciosDisponibles(espacioSeleccionadoPreviamente = "") {
+  const tipoEventoSeleccionado = document.getElementById("tipo_evento").value;
+  const espacioSelect = document.getElementById("espacio");
+
+  // Modalidad Virtual: no aplica espacio
+  if (esVirtual()) {
+    espacioSelect.innerHTML = '<option value="">No aplica (evento virtual)</option>';
+    espacioSelect.disabled = true;
+    requiredIfEnabledVisible(espacioSelect, false);
+    return;
+  }
+
+  // *** NUEVO: Modalidad Externo: no aplica espacio institucional
+  if (esExterno()) {
+    espacioSelect.innerHTML = '<option value="">No aplica (evento externo)</option>';
+    espacioSelect.disabled = true;
+    requiredIfEnabledVisible(espacioSelect, false);
+    return;
+  }
+
+  // Presencial o Híbrido
+  if (!tipoEventoSeleccionado) {
+    espacioSelect.innerHTML = '<option value="">Seleccione primero un Tipo de Evento</option>';
+    espacioSelect.disabled = true;
+    requiredIfEnabledVisible(espacioSelect, false);
+    return;
+  }
+
+  const tipoEventoNormalizado = tipoEventoSeleccionado.toLowerCase();
+  let espaciosValidos = [];
+  for (const eventoBase in espaciosPorEvento) {
+    if (tipoEventoNormalizado.includes(eventoBase)) {
+      espaciosValidos = espaciosPorEvento[eventoBase];
+      break;
+    }
+  }
+
+  if (espaciosValidos.length > 0) {
+    const opcionesHTML = espaciosValidos.map(e => `<option value="${e}">${e}</option>`).join("");
+    espacioSelect.innerHTML = `<option value="">Seleccione un espacio</option>${opcionesHTML}`;
+
+    if (espacioSeleccionadoPreviamente && !espaciosValidos.includes(espacioSeleccionadoPreviamente)) {
+      const opt = new Option(`${espacioSeleccionadoPreviamente} (registrado)`, espacioSeleccionadoPreviamente, true, true);
+      opt.dataset.invalid = "1";
+      espacioSelect.add(opt);
+    }
+    if (espacioSeleccionadoPreviamente) espacioSelect.value = espacioSeleccionadoPreviamente;
+
+    espacioSelect.disabled = false;
+    requiredIfEnabledVisible(espacioSelect, true);
+  } else {
+    if (espacioSeleccionadoPreviamente) {
+      espacioSelect.innerHTML = `<option value="${espacioSeleccionadoPreviamente}">${espacioSeleccionadoPreviamente} (registrado)</option>`;
+      espacioSelect.value = espacioSeleccionadoPreviamente;
+      espacioSelect.disabled = false;
+      requiredIfEnabledVisible(espacioSelect, true);
+    } else {
+      espacioSelect.innerHTML = '<option value="">No hay espacios disponibles para este evento</option>';
+      espacioSelect.disabled = true;
+      requiredIfEnabledVisible(espacioSelect, false);
+    }
+  }
+}
+
+/* ====== FIX #2: no borrar participantes al recalcular; permitir preset ====== */
+function actualizarCapacidadParticipantes(presetValue = null) {
+  const espacioSelect = document.getElementById("espacio");
+  const participantesInput = document.getElementById("participantes");
+  const espacioSeleccionado = espacioSelect.value;
+
+  participantesInput.classList.remove('is-invalid');
+  const errorDiv = document.getElementById('error-participantes');
+  if (errorDiv) errorDiv.textContent = '';
+
+  // *** NUEVO: Externo -> deshabilitado
+  if (esExterno()) {
+    participantesInput.disabled = true;
+    participantesInput.value = '';
+    participantesInput.placeholder = 'No aplica (evento externo)';
+    participantesInput.removeAttribute('max');
+    requiredIfEnabledVisible(participantesInput, false);
+    return;
+  }
+
+  if (esVirtual()) {
+    participantesInput.disabled = false;
+    participantesInput.placeholder = 'Ingrese número de participantes';
+    participantesInput.removeAttribute('max');
+    if (presetValue !== null && presetValue !== '') participantesInput.value = presetValue;
+    requiredIfEnabledVisible(participantesInput, true);
+    return;
+  }
+
+  if (!espacioSeleccionado) {
+    participantesInput.disabled = true;
+    participantesInput.placeholder = 'Seleccione un espacio primero';
+    participantesInput.removeAttribute('max');
+    requiredIfEnabledVisible(participantesInput, false);
+    return;
+  }
+
+  if (espaciosSinLimite.has(espacioSeleccionado)) {
+    participantesInput.disabled = false;
+    participantesInput.placeholder = 'Ingrese número de participantes';
+    participantesInput.removeAttribute('max');
+    if (presetValue !== null && presetValue !== '') participantesInput.value = presetValue;
+    requiredIfEnabledVisible(participantesInput, true);
+    return;
+  }
+
+  if (capacidadesMaximas[espacioSeleccionado]) {
+    const capacidad = capacidadesMaximas[espacioSeleccionado];
+    participantesInput.disabled = false;
+    participantesInput.placeholder = `Máximo permitido: ${capacidad}`;
+    participantesInput.max = capacidad;
+    if (presetValue !== null && presetValue !== '') participantesInput.value = presetValue;
+    requiredIfEnabledVisible(participantesInput, true);
+  } else {
+    participantesInput.disabled = false;
+    participantesInput.placeholder = 'Ingrese número de participantes';
+    participantesInput.removeAttribute('max');
+    if (presetValue !== null && presetValue !== '') participantesInput.value = presetValue;
+    requiredIfEnabledVisible(participantesInput, true);
+  }
+}
+
+function validarParticipantesEnVivo(input) {
+  const errorDiv = document.getElementById('error-participantes');
+  if (!errorDiv) return;
+
+  const numeroIngresado = parseInt(input.value, 10);
+  const capacidadMaxima = parseInt(input.max, 10);
+
+  if (!isNaN(numeroIngresado) && !isNaN(capacidadMaxima)) {
+    if (numeroIngresado > capacidadMaxima) {
+      errorDiv.textContent = `El máximo permitido es ${capacidadMaxima}.`;
+      input.classList.add('is-invalid');
+    } else {
+      errorDiv.textContent = '';
+      input.classList.remove('is-invalid');
+    }
+  } else {
+    errorDiv.textContent = '';
+    input.classList.remove('is-invalid');
+  }
+}
+
+/* ====== FIX #3: flujo de edición preservando valores ====== */
+function mostrarFormularioDetalle(index = -1) {
+  document.getElementById("contenedorBotonEnviar").style.display = "none";
+
+  editarIndex = index;
+  const evento = eventos[index] || {};
+
+  // *** NUEVO: al editar, bloquear datos del solicitante y fijar la modalidad usada por ese evento
+  const solicitante = document.getElementById('solicitante');
+  const modalidadTop = document.getElementById('modalidad');
+  const departamento = document.getElementById('departamento');
+  const correo = document.getElementById('correo');
+
+  if (index >= 0) {
+    if (evento.modalidad) modalidadTop.value = evento.modalidad;
+    solicitante.disabled = true;
+    modalidadTop.disabled = true;
+    correo.disabled = true;
+    $('#departamento').prop('disabled', true); // select2
+  } else {
+    solicitante.disabled = false;
+    modalidadTop.disabled = false;
+    correo.disabled = false;
+    $('#departamento').prop('disabled', false);
+  }
+
+  const opcionesCategorias = Object.keys(tiposPorCategoria)
+    .map(cat => `<option value="${cat}" ${evento.categoria === cat ? "selected" : ""}>${cat}</option>`)
+    .join("");
+
+  document.getElementById('detalleEvento').innerHTML = `
+    <div class="titulo-seccion">DETALLE DEL EVENTO</div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Categoría</label>
+        <select class="form-select" id="categoria" onchange="actualizarTipoEvento()" required>
+          <option value="">Seleccione</option>
+          ${opcionesCategorias}
+        </select>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Tipo Evento</label>
+        <select class="form-select" id="tipo_evento" required onchange="manejarVisibilidadFechaHora(); actualizarEspaciosDisponibles(document.getElementById('espacio').value || '');"></select>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Nombre Evento</label>
+        <input type="text" class="form-control" id="nombre_evento" value="${evento.nombre_evento || ''}" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Alcance</label>
+        <select class="form-select" id="alcance" required>
+          <option value="">Seleccione</option>
+          <option value="Nacional" ${evento.alcance === 'Nacional' ? 'selected' : ''}>Nacional</option>
+          <option value="Internacional" ${evento.alcance === 'Internacional' ? 'selected' : ''}>Internacional</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <!-- Nombre Espacio (institucional) -->
+      <div class="col-md-6" id="grupoEspacio">
+        <label class="form-label">Nombre Espacio</label>
+        <select class="form-select" id="espacio" required disabled onchange="actualizarCapacidadParticipantes()">
+          <option value="">Seleccione primero un Tipo de Evento</option>
+        </select>
+      </div>
+
+      <!-- *** NUEVO: Lugar Evento (para Externo) -->
+      <div class="col-md-6" id="grupoLugarEvento" style="display:none;">
+        <label class="form-label">Lugar Evento</label>
+        <input type="text" class="form-control" id="lugar_evento" placeholder="Ej.: Auditorio Municipal de Milagro" value="${evento.lugar_evento || ''}">
+      </div>
+
+      <div class="col-md-6">
+        <label class="form-label">Número de participantes:</label>
+        <input type="number" class="form-control" id="participantes" value="${evento.participantes || ''}"
+          placeholder="Seleccione un espacio primero" min="1" disabled required oninput="validarParticipantesEnVivo(this)">
+        <div id="error-participantes" class="form-text text-danger"></div>
+      </div>
+    </div>
+
+    <div class="row mb-3" id="contenedorFechasHoras">
+      <div class="col-md-3">
+        <label class="form-label">Fecha Inicio</label>
+        <input type="date" class="form-control" id="inicio_reserva" value="${evento.inicio_reserva || ''}" required onchange="validarFechasInicio()">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Fecha Fin</label>
+        <input type="date" class="form-control" id="fin_reserva" value="${evento.fin_reserva || ''}" required onchange="validarFechasFin()">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Hora Inicio</label>
+        <input type="time" class="form-control" id="hora_inicio" value="${evento.hora_inicio || ''}" required>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label">Hora Fin</label>
+        <input type="time" class="form-control" id="hora_fin" value="${evento.hora_fin || ''}" required>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-12">
+        <label class="form-label">Descripción</label>
+        <textarea class="form-control" id="objeto_reserva" rows="2">${evento.objeto_reserva || ''}</textarea>
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label">Responsable del evento</label>
+        <input type="text" class="form-control" id="responsable_espacio" value="${evento.responsable_espacio || ''}" placeholder="Ingrese el nombre completo" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Celular</label>
+        <input type="tel" class="form-control" id="celular" value="${evento.celular ? evento.celular.replace(/'/g, '') : ''}" pattern="[0-9]{10}" maxlength="10" title="El número de celular debe contener 10 dígitos." required inputmode="numeric">
+      </div>
+    </div>
+
+    <div class="row mb-3">
+      <div class="col-12">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="terminos" required/>
+          <label class="form-check-label texto-mediano" for="terminos">
+            Acepto los 
+            <a href="https://docs.google.com/document/d/1PNRoHcDD0k8BwewJDjTy6VdTOtCmurF_/edit?usp=drive_link&ouid=110049633757378533995&rtpof=true&sd=true"
+               target="_blank" rel="noopener noreferrer">
+              Términos y Condiciones
+            </a>
+            y el 
+            <a href="https://drive.google.com/file/d/1nQ1PjQqttC3Ho_ONk7p7AFIMt6Ok3NWL/view?usp=drive_link"
+               target="_blank" rel="noopener noreferrer">
+              Protocolo para el Desarrollo de Eventos
+            </a>.
+          </label>
+          <div class="form-text">
+            Debe aceptar esta casilla para poder enviar la solicitud.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-end">
+      <button type="button" class="btn btn-secondary" onclick="cancelarDetalle()">Cancelar</button>
+      <button type="button" class="btn btn-success" onclick="guardarEvento()">Guardar Evento</button>
+    </div>
+  `;
+
+  document.getElementById('celular').addEventListener('input', function (e) {
+    this.value = this.value.replace(/[^0-9]/g, '');
+  });
+
+  document.getElementById("detalleEvento").style.display = "block";
+
+  // 1) Poblar tipo según categoría
+  actualizarTipoEvento(evento.tipo_evento || "");
+
+  // 2) Restaurar espacio
+  const selEspacio = document.getElementById('espacio');
+  actualizarEspaciosDisponibles(evento.espacio || "");
+  if (evento.espacio) {
+    selEspacio.value = evento.espacio;
+    if (selEspacio.value !== evento.espacio) {
+      const opt = new Option(`${evento.espacio} (registrado)`, evento.espacio, true, true);
+      opt.dataset.invalid = "1";
+      selEspacio.add(opt);
+      selEspacio.value = evento.espacio;
+    }
+  }
+
+  // 3) Restaurar participantes respetando capacidad/estado
+  actualizarCapacidadParticipantes(evento.participantes || "");
+
+  const hoy = hoyISO();
+  const inicioInput = document.getElementById('inicio_reserva');
+  const finInput    = document.getElementById('fin_reserva');
+  inicioInput.min = hoy;
+
+  if (inicioInput.value && inicioInput.value < hoy) inicioInput.value = '';
+  if (finInput.value && inicioInput.value < hoy && finInput.value < inicioInput.value) finInput.value = '';
+
+  // Si cambia la modalidad desde arriba (solo cuando no está bloqueada)…
+  document.getElementById('modalidad').addEventListener('change', () => {
+    aplicarModalidadEnDetalle();
+    actualizarEspaciosDisponibles(selEspacio.value || "");
+    actualizarCapacidadParticipantes(document.getElementById('participantes').value || "");
+  });
+
+  aplicarModalidadEnDetalle(); // *** NUEVO: pinta visibilidad según modalidad actual
+  aplicarRequiredContextual();
+}
+
+function actualizarTipoEvento(seleccionada = "") {
+  const categoriaSel = document.getElementById("categoria").value;
+  const tipo_evento = document.getElementById("tipo_evento");
+  if (!tipo_evento) return;
+
+  let opcionesLista = [];
+
+  if (esVirtual()) {
+    const cat = categoriaSel || (obtenerCategoriasPermitidasVirtual()[0] || "");
+    const tiposPermitidos = obtenerTiposPermitidosVirtualPorCategoria(cat);
+    opcionesLista = tiposPermitidos;
+  } else {
+    if (!categoriaSel) {
+      tipo_evento.innerHTML = `<option value="">Seleccione</option>`;
+      return;
+    }
+    opcionesLista = (tiposPorCategoria[categoriaSel] || []);
+  }
+
+  const opcionesHTML = opcionesLista
+    .map(e => `<option value="${e}" ${e === seleccionada ? "selected" : ""}>${e}</option>`)
+    .join("");
+
+  tipo_evento.innerHTML = `<option value="">Seleccione</option>${opcionesHTML}`;
+
+  manejarVisibilidadFechaHora();
+
+  const espacioActual = document.getElementById('espacio')?.value || "";
+  actualizarEspaciosDisponibles(espacioActual);
+
+  aplicarRequiredContextual();
+}
+
+function guardarEvento() {
+  const hoy = hoyISO();
+  const inicio = document.getElementById("inicio_reserva").value;
+
+  if (!inicio || inicio < hoy) {
+    Swal.fire({ icon: 'error', title: 'Fecha de inicio inválida', text: 'La fecha de inicio debe ser igual o mayor a la fecha actual.' });
+    return;
+  }
+
+  const participantesInput = document.getElementById('participantes');
+  const numParticipantes = parseInt(participantesInput.value, 10);
+  const capacidadMaxima = parseInt(participantesInput.max, 10);
+
+  if (!participantesInput.disabled && !isNaN(numParticipantes) && !isNaN(capacidadMaxima) && numParticipantes > capacidadMaxima) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Capacidad Excedida',
+      text: `El número de participantes (${numParticipantes}) no puede ser mayor que el máximo permitido de ${capacidadMaxima} para este espacio.`
+    });
+    return;
+  }
+
+  const chkTerminos = document.getElementById('terminos');
+  if (!chkTerminos || !chkTerminos.checked) {
+    Swal.fire({ icon: 'warning', title: 'Debe aceptar los Términos y Condiciones', text: 'Marque la casilla "Acepto los Términos y Condiciones" para continuar.' });
+    return;
+  }
+
+  const celularInput = document.getElementById("celular");
+  const celularRegex = /^[0-9]{10}$/;
+  if (!celularRegex.test(celularInput.value)) {
+    Swal.fire({ icon: 'error', title: 'Celular no válido', text: 'Por favor, ingrese un número de celular que contenga exactamente 10 dígitos.' });
+    celularInput.focus();
+    return;
+  }
+
+  if (!validarCamposDetalleObligatorios()) return;
+
+  if (esVirtual()) {
+    const cat = document.getElementById("categoria").value;
+    const tipo = document.getElementById("tipo_evento").value;
+    const catsPerm = obtenerCategoriasPermitidasVirtual();
+    const tiposPerm = obtenerTiposPermitidosVirtualPorCategoria(cat);
+    if (!catsPerm.includes(cat) || !tiposPerm.includes(tipo)) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Tipo no permitido en modalidad Virtual',
+        text: 'En modalidad Virtual solo se permiten categorías y tipos definidos para “Eventos Institucionales” y “Eventos Solemnes”.'
+      });
+      return;
+    }
+  }
+
+  const evento = {
+    categoria: document.getElementById("categoria").value,
+    tipo_evento: document.getElementById("tipo_evento").value,
+    nombre_evento: document.getElementById("nombre_evento").value,
+    modalidad: document.getElementById("modalidad").value,
+    espacio: document.getElementById("espacio").value,
+    lugar_evento: document.getElementById("lugar_evento") ? document.getElementById("lugar_evento").value : "", // *** NUEVO
+    inicio_reserva: document.getElementById("inicio_reserva").value,
+    hora_inicio: document.getElementById("hora_inicio").value,
+    fin_reserva: document.getElementById("fin_reserva").value,
+    hora_fin: document.getElementById("hora_fin").value,
+    participantes: document.getElementById("participantes").value,
+    alcance: document.getElementById("alcance").value,
+    objeto_reserva: document.getElementById("objeto_reserva").value,
+    responsable_espacio: document.getElementById("responsable_espacio").value,
+    celular: "'" + celularInput.value
+  };
+
+  if (editarIndex >= 0) {
+    eventos[editarIndex] = evento;
+  } else {
+    eventos.push(evento);
+  }
+
+  // *** NUEVO: al terminar de editar, reactivar datos del solicitante
+  document.getElementById('solicitante').disabled = false;
+  document.getElementById('modalidad').disabled = false;
+  document.getElementById('correo').disabled = false;
+  $('#departamento').prop('disabled', false);
+
+  document.getElementById("detalleEvento").style.display = "none";
+  document.getElementById("detalleEvento").innerHTML = "";
+  mostrarTablaResumen();
+
+  if (eventos.length > 0) {
+    document.getElementById("contenedorBotonEnviar").style.display = "block";
+  }
+}
+
+function cancelarDetalle() {
+  // *** NUEVO: si estaba editando, reactivar campos de solicitante
+  document.getElementById('solicitante').disabled = false;
+  document.getElementById('modalidad').disabled = false;
+  document.getElementById('correo').disabled = false;
+  $('#departamento').prop('disabled', false);
+
+  document.getElementById("detalleEvento").style.display = "none";
+  if (eventos.length > 0) {
+    document.getElementById("contenedorBotonEnviar").style.display = "block";
+  }
+}
+
+function hoyISO() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d.toISOString().split('T')[0];
+}
+
+function validarFechasInicio() {
+  const fechaInicioInput = document.getElementById('inicio_reserva');
+  const fechaFinInput    = document.getElementById('fin_reserva');
+  const fechaInicio      = fechaInicioInput.value;
+  const hoy              = hoyISO();
+
+  if (fechaInicio) {
+    if (fechaInicio < hoy) {
+      Swal.fire({ icon: 'error', title: 'Fecha de inicio inválida', text: 'La fecha de inicio no puede ser anterior a la fecha actual.' });
+      fechaInicioInput.value = '';
+      fechaFinInput.min = '';
+      return;
+    }
+    fechaFinInput.min = fechaInicio;
+    if (fechaFinInput.value && fechaFinInput.value < fechaInicio) {
+      fechaFinInput.value = '';
+    }
+  } else {
+    fechaFinInput.min = '';
+  }
+}
+
+function validarFechasFin() {
+  const fechaInicioInput = document.getElementById('inicio_reserva');
+  const fechaFinInput = document.getElementById('fin_reserva');
+  const fechaInicio = fechaInicioInput.value;
+  const fechaFin = fechaFinInput.value;
+  if (fechaInicio && fechaFin) {
+    if (new Date(fechaFin) < new Date(fechaInicio)) {
+      Swal.fire({ icon: 'error', title: 'Fecha Incorrecta', text: 'La fecha de fin no puede ser anterior a la fecha de inicio.' });
+      fechaFinInput.value = '';
+    }
+  }
+}
+
+function esVirtual() {
+  const sel = document.getElementById('modalidad');
+  return sel && sel.value === 'Virtual';
+}
+function esPresencialOHibrido() {
+  const sel = document.getElementById('modalidad');
+  return sel && (sel.value === 'Presencial' || sel.value === 'Híbrido');
+}
+// *** NUEVO
+function esExterno() {
+  const sel = document.getElementById('modalidad');
+  return sel && sel.value === 'Externo';
+}
+
+function aplicarModalidadEnDetalle() {
+  const espacioSelect = document.getElementById("espacio");
+  const participantesInput = document.getElementById("participantes");
+  const categoriaSelect = document.getElementById("categoria");
+  const tipoEventoSelect = document.getElementById("tipo_evento");
+  const grupoEspacio = document.getElementById("grupoEspacio");      // *** NUEVO
+  const grupoLugar = document.getElementById("grupoLugarEvento");    // *** NUEVO
+  const lugarInput = document.getElementById("lugar_evento");        // *** NUEVO
+  if (!espacioSelect || !participantesInput || !categoriaSelect || !tipoEventoSelect) return;
+
+  if (esExterno()) {
+    // Visibilidad: ocultar "Nombre Espacio" y mostrar "Lugar Evento"
+    if (grupoEspacio) grupoEspacio.style.display = "none";
+    if (grupoLugar)   grupoLugar.style.display = "block";
+    if (lugarInput)   setRequired(lugarInput, true);
+
+    espacioSelect.value = "";
+    espacioSelect.disabled = true;
+    espacioSelect.innerHTML = '<option value="">No aplica (evento externo)</option>';
+
+    participantesInput.disabled = true;
+    participantesInput.value = '';
+    participantesInput.placeholder = "No aplica (evento externo)";
+    participantesInput.removeAttribute('max');
+
+    // Categorías/tipos como presencial/híbrido (sin restricciones)
+    categoriaSelect.disabled = false;
+  } else if (esVirtual()) {
+    if (grupoEspacio) grupoEspacio.style.display = "block";
+    if (grupoLugar)   grupoLugar.style.display = "none";
+    if (lugarInput)   setRequired(lugarInput, false);
+
+    const catsPerm = obtenerCategoriasPermitidasVirtual();
+    categoriaSelect.innerHTML = `<option value="">Seleccione</option>` + catsPerm.map(c => `<option value="${c}">${c}</option>`).join("");
+    categoriaSelect.disabled = false;
+    if (!catsPerm.includes(categoriaSelect.value)) categoriaSelect.value = catsPerm[0];
+
+    const tipos = obtenerTiposPermitidosVirtualPorCategoria(categoriaSelect.value);
+    tipoEventoSelect.innerHTML = `<option value="">Seleccione</option>` + tipos.map(t => `<option value="${t}">${t}</option>`).join("");
+
+    espacioSelect.value = "";
+    espacioSelect.disabled = true;
+    espacioSelect.innerHTML = '<option value="">No aplica (evento virtual)</option>';
+
+    participantesInput.disabled = false;
+    participantesInput.placeholder = "Ingrese número de participantes (sin límite)";
+    participantesInput.removeAttribute('max');
+
+    categoriaSelect.onchange = () => {
+      const tipos2 = obtenerTiposPermitidosVirtualPorCategoria(categoriaSelect.value);
+      tipoEventoSelect.innerHTML = `<option value="">Seleccione</option>` + tipos2.map(t => `<option value="${t}">${t}</option>`).join("");
+      manejarVisibilidadFechaHora();
+      aplicarRequiredContextual();
+    };
+  } else {
+    // Presencial / Híbrido
+    if (grupoEspacio) grupoEspacio.style.display = "block";
+    if (grupoLugar)   grupoLugar.style.display = "none";
+    if (lugarInput)   setRequired(lugarInput, false);
+
+    categoriaSelect.disabled = false;
+    actualizarTipoEvento(tipoEventoSelect.value || "");
+    espacioSelect.disabled = false;
+    actualizarEspaciosDisponibles(espacioSelect.value || "");
+    actualizarCapacidadParticipantes(document.getElementById('participantes').value || "");
+  }
+
+  aplicarRequiredContextual();
+}
+
+const TIPOS_VIRTUAL = {
+  "Eventos Institucionales": [
+    "Congresos, seminarios, simposios, encuentros, foros, talleres o jornadas, entre otros.",
+    "Socialización de resultados de actividades y/o proyectos de vinculación e investigación",
+    "Socialización de planes de las unidades organizacionales",
+    "Entrega de Reconocimiento por rendimiento académico"
+  ],
+  "Eventos Solemnes": [
+    "Sesión Solemne de Aniversario Institucional",
+    "Audiencia Pública de Rendición de Cuentas, dispuesta por el Consejo de Participación Ciudadana y Control Social",
+    "Aniversario de fundación de las facultades",
+    "Ceremonia Honoris Causa"
+  ]
+};
+function obtenerCategoriasPermitidasVirtual() { return Object.keys(TIPOS_VIRTUAL); }
+function obtenerTiposPermitidosVirtualPorCategoria(cat) { return TIPOS_VIRTUAL[cat] || []; }
+
+function manejarVisibilidadFechaHora() {
+  const categoria = document.getElementById("categoria").value;
+  const tipoEvento = document.getElementById("tipo_evento").value;
+  const contenedor = document.getElementById("contenedorFechasHoras");
+  const campos = [
+    document.getElementById("inicio_reserva"),
+    document.getElementById("fin_reserva"),
+    document.getElementById("hora_inicio"),
+    document.getElementById("hora_fin")
+  ];
+
+  if (categoria === "Eventos Solemnes" && tipoEvento === "Ceremonias de graduación de grado y posgrado") {
+    contenedor.style.display = "none";
+    campos.forEach(campo => { campo.required = false; campo.value = ""; });
+  } else {
+    contenedor.style.display = "flex";
+    campos.forEach(campo => { campo.required = true; });
+  }
+
+  aplicarRequiredContextual();
+}
+
+function mostrarTablaResumen() {
+  const tbody = document.getElementById("tablaResumen");
+  tbody.innerHTML = eventos.map((e, i) => `
+    <tr>
+      <td>${e.nombre_evento}</td>
+      <td>${e.categoria}</td>
+      <td>${e.tipo_evento}</td>
+      <td>${e.modalidad || 'Presencial'}</td>
+      <td>${
+        e.modalidad === 'Virtual'
+          ? 'No aplica'
+          : (e.modalidad === 'Externo'
+              ? (e.lugar_evento || '')
+              : (e.espacio || ''))
+      }</td>
+      <td>${e.inicio_reserva}</td>
+      <td>${e.fin_reserva}</td>
+      <td>${e.hora_inicio}</td>
+      <td>${e.hora_fin}</td>
+      <td>${e.modalidad === 'Externo' ? 'No aplica (evento externo)' : (e.participantes || '')}</td>
+      <td>
+        <button type="button" class="btn btn-sm btn-warning" onclick="mostrarFormularioDetalle(${i})">Editar</button>
+        <button type="button" class="btn btn-sm btn-danger" onclick="eliminarEvento(${i})">Eliminar</button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function eliminarEvento(index) {
+  eventos.splice(index, 1);
+  mostrarTablaResumen();
+  if (eventos.length === 0) {
+    document.getElementById("contenedorBotonEnviar").style.display = "none";
+  }
+}
+
+// >>> VALIDACIÓN OBLIGATORIA: aplica required correctamente cada vez que cambia el contexto
+function aplicarRequiredContextual() {
+  const espacio = document.getElementById('espacio');
+  const participantes = document.getElementById('participantes');
+  const contenedor = document.getElementById('contenedorFechasHoras');
+  const inicio = document.getElementById('inicio_reserva');
+  const fin = document.getElementById('fin_reserva');
+  const hi = document.getElementById('hora_inicio');
+  const hf = document.getElementById('hora_fin');
+  const lugar = document.getElementById('lugar_evento'); // *** NUEVO
+
+  // Espacio requerido solo si no es Virtual ni Externo
+  requiredIfEnabledVisible(espacio, !esVirtual() && !esExterno());
+
+  // Participantes requerido salvo que esté deshabilitado (Externo lo deshabilita)
+  requiredIfEnabledVisible(participantes, true);
+
+  // Lugar requerido solo en Externo (se setea también en aplicarModalidadEnDetalle)
+  if (lugar) setRequired(lugar, esExterno());
+
+  const fechasVisibles = isVisible(contenedor) && contenedor.style.display !== 'none';
+  setRequired(inicio, fechasVisibles);
+  setRequired(fin, fechasVisibles);
+  setRequired(hi, fechasVisibles);
+  setRequired(hf, fechasVisibles);
+}
+
+// >>> VALIDACIÓN OBLIGATORIA: chequeo final antes de guardar
+function validarCamposDetalleObligatorios() {
+  const categoria = document.getElementById('categoria');
+  const tipo = document.getElementById('tipo_evento');
+  const nombre = document.getElementById('nombre_evento');
+  const alcance = document.getElementById('alcance');
+  const espacio = document.getElementById('espacio');
+  const participantes = document.getElementById('participantes');
+  const contenedor = document.getElementById('contenedorFechasHoras');
+  const inicio = document.getElementById('inicio_reserva');
+  const fin = document.getElementById('fin_reserva');
+  const hi = document.getElementById('hora_inicio');
+  const hf = document.getElementById('hora_fin');
+  const responsable = document.getElementById('responsable_espacio');
+  const lugar = document.getElementById('lugar_evento'); // *** NUEVO
+
+  aplicarRequiredContextual();
+
+  const falta = (el) => el && !el.disabled && isVisible(el) && el.hasAttribute('required') && !String(el.value || '').trim();
+
+  if (falta(categoria)) return Swal.fire({icon:'error',title:'Falta Categoría',text:'Seleccione una categoría.'}), false;
+  if (falta(tipo)) return Swal.fire({icon:'error',title:'Falta Tipo de Evento',text:'Seleccione un tipo de evento.'}), false;
+  if (falta(nombre)) return Swal.fire({icon:'error',title:'Falta Nombre del Evento',text:'Ingrese el nombre del evento.'}), false;
+  if (falta(alcance)) return Swal.fire({icon:'error',title:'Falta Alcance',text:'Seleccione el alcance.'}), false;
+
+  if (!esVirtual() && !esExterno() && falta(espacio))
+    return Swal.fire({icon:'error',title:'Falta Espacio',text:'Seleccione un espacio disponible para el evento.'}), false;
+
+  if (esExterno() && falta(lugar))
+    return Swal.fire({icon:'error',title:'Falta Lugar del Evento',text:'Ingrese el lugar del evento externo.'}), false;
+
+  if (!participantes.disabled && falta(participantes))
+    return Swal.fire({icon:'error',title:'Faltan Participantes',text:'Indique el número de participantes.'}), false;
+
+  const fechasVisibles = isVisible(contenedor) && contenedor.style.display !== 'none';
+  if (fechasVisibles) {
+    if (falta(inicio)) return Swal.fire({icon:'error',title:'Falta Fecha de Inicio',text:'Seleccione la fecha de inicio.'}), false;
+    if (falta(fin)) return Swal.fire({icon:'error',title:'Falta Fecha de Fin',text:'Seleccione la fecha de fin.'}), false;
+    if (falta(hi)) return Swal.fire({icon:'error',title:'Falta Hora de Inicio',text:'Seleccione la hora de inicio.'}), false;
+    if (falta(hf)) return Swal.fire({icon:'error',title:'Falta Hora de Fin',text:'Seleccione la hora de fin.'}), false;
+  }
+
+  if (falta(responsable)) return Swal.fire({icon:'error',title:'Falta Responsable',text:'Ingrese el responsable del evento.'}), false;
+
+  if (!participantes.disabled) {
+    const n = parseInt(participantes.value, 10);
+    if (isNaN(n) || n < 1) {
+      Swal.fire({icon:'error',title:'Participantes inválido',text:'Ingrese un número válido (>=1).'});
+      return false;
+    }
+  }
+  return true;
+}
+
+document.getElementById("formularioEvento").addEventListener("submit", async function(e) {
+  e.preventDefault();
+
+  const solicitante = document.getElementById("solicitante");
+  const modalidad = document.getElementById("modalidad");
+  const depto = document.getElementById("departamento");
+  const correo = document.getElementById("correo");
+
+  if (!solicitante.value.trim() || !modalidad.value || !depto.value || !correo.value.trim()) {
+    Swal.fire({icon:'error',title:'Complete los datos del solicitante',text:'Solicitante, Modalidad, Unidad y Correo son obligatorios.'});
+    return;
+  }
+
+  const hoy = hoyISO();
+  const tieneFechasInvalidas = eventos.some(ev => !ev.inicio_reserva || ev.inicio_reserva < hoy);
+  if (tieneFechasInvalidas) {
+    Swal.fire({ icon: "error", title: "Fechas inválidas", text: "Todos los eventos deben tener fecha de inicio igual o mayor a la fecha actual." });
+    return;
+  }
+
+  if (eventos.length === 0) {
+    Swal.fire({ icon: "warning", title: "Sin eventos", text: "Debe añadir al menos un evento a la lista antes de enviar." });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Enviando...',
+    text: 'Se está enviando la información, por favor espere.',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => { Swal.showLoading(); }
+  });
+
+  const formData = new FormData();
+  const nombreDepartamento = $('#departamento').val();
+  formData.append("solicitante", solicitante.value);
+  formData.append("departamento", nombreDepartamento);
+  formData.append("correo", correo.value);
+  formData.append("modalidad", modalidad.value);
+  formData.append("eventos", JSON.stringify(eventos));
+
+  try {
+    const res = await fetch(scriptURL, { method: "POST", body: formData });
+    const data = await res.json();
+    if (data.status === "ok") {
+      Swal.fire({ icon: "success", title: "Solicitud enviado", text: "Los eventos han sido registrados" });
+      this.reset();
+      eventos = [];
+      mostrarTablaResumen();
+      document.getElementById("detalleEvento").style.display = "none";
+      cargarUnidades();
+      document.getElementById("contenedorBotonEnviar").style.display = "none";
+    } else {
+      throw new Error(data.message || "No se pudo completar el envío.");
+    }
+  } catch (err) {
+    Swal.fire({ icon: "error", title: "Error", html: err.message });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  cargarUnidades();
+});
+</script>
+</body>
+</html>
