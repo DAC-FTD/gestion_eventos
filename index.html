@@ -252,7 +252,7 @@
             <div class="row mb-3">
               <div class="col-md-12">
                 <label for="archivo" class="form-label">Adjuntar archivo:</label>
-                <input type="file" class="form-control" id="archivo" name="archivo" accept=".xlsx,.xls,.docx">
+                <input type="file" class="form-control" id="archivo" name="archivo" accept=".xlsx,.xls,.docx,.pdf">
                 <div class="form-text">El documento debe contener los datos complementarios de la reserva.</div>
               </div>
             </div>
@@ -822,11 +822,11 @@ document.getElementById('formulario-espacio').addEventListener('submit', async e
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/msword'
   ];
-  const allowedExtensions = ['xlsx', 'xls', 'docx'];
+  const allowedExtensions = ['xlsx', 'xls', 'docx', 'pdf'];
   const extension = archivo.name.split('.').pop().toLowerCase();
 
   if (!allowedTypes.includes(archivo.type) || !allowedExtensions.includes(extension)) { 
-    return Swal.fire({ icon:'error', title:'Tipo de archivo inválido', text:'Debe ser .xlsx, .xls, doc o .docx' });
+    return Swal.fire({ icon:'error', title:'Tipo de archivo inválido', text:'Debe ser .xlsx, .xls, doc, .docx o .pdf'});
   }
 
   const reader = new FileReader();
