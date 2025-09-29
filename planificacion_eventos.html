@@ -134,19 +134,19 @@ const tiposPorCategoria = {
     "Ceremonia Honoris Causa"
   ],
   "Eventos Institucionales": [
-    "Congresos",
-      "Seminarios",
-      "Simposios",
-      "Encuentros",
-      "Talleres o jornadas",
-      "Otros",
-      "Socialización de planes de las unidades organizacionales",
+    "Socialización de planes de las unidades organizacionales",
     "Ceremonia de bienvenida al inicio de periodo académico",
     "Casas abiertas de las facultades",
     "Socialización de resultados de actividades y/o proyectos de vinculación e investigación",
     "Entrega de Reconocimiento por rendimiento académico",
     "Inauguración de obras",
-    "Momento Cívico"
+    "Momento Cívico",
+    "Congresos",
+    "Seminarios",
+    "Simposios",
+    "Encuentros",
+    "Talleres o jornadas",
+    "Otros"
   ],
   "Eventos Interinstitucionales": ["Firma de convenios interinstitucionales y/o de cooperación interinstitucional","Eventos que sean organizados por otras instituciones"],
   "Eventos Culturales y Deportivos": ["Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Novatada Cultural Institucional","Campeonatos internos y externos"]
@@ -241,7 +241,8 @@ const unidades = [
   {"codigo":42,"text":"Rectorado"},
   {"codigo":43,"text":"Vicerrectorado de Vinculación"},
   {"codigo":44,"text":"Vicerrectorado de Investigación y de Posgrado"},
-  {"codigo":45,"text":"Vicerrectorado Académico de Formación de Grado"}
+  {"codigo":45,"text":"Vicerrectorado Académico de Formación de Grado"},
+  {"codigo":46,"text":"EPUNEMI"}
 ];
 
 // === Carga e inicializa Select2 ===
@@ -912,15 +913,15 @@ function aplicarModalidadEnDetalle() {
 
 const TIPOS_VIRTUAL = {
   "Eventos Institucionales": [
-    "Congresos",
-      "Seminarios",
-      "Simposios",
-      "Encuentros",
-      "Talleres o jornadas",
-      "Otros",
-      "Socialización de resultados de actividades y/o proyectos de vinculación e investigación",
+    "Socialización de resultados de actividades y/o proyectos de vinculación e investigación",
     "Socialización de planes de las unidades organizacionales",
-    "Entrega de Reconocimiento por rendimiento académico"
+    "Entrega de Reconocimiento por rendimiento académico",
+    "Congresos",
+    "Seminarios",
+    "Simposios",
+    "Encuentros",
+    "Talleres o jornadas",
+    "Otros"
   ],
   "Eventos Solemnes": [
     "Sesión Solemne de Aniversario Institucional",
