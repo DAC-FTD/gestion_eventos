@@ -33,13 +33,13 @@
 <!-- Encabezado -->
 <div class="franja-superior d-flex justify-content-between align-items-center px-3">
   <div class="d-flex align-items-center">
-    <img src=https://dac-ftd.github.io/pry-admin/img/logo-unemi.png alt="Logo" class="logo-tigre">
+    <img src="img/logo-unemi.png" alt="Logo" class="logo-tigre">
   </div>
   <div class="text-center flex-grow-1">
     <h2 class="fw-bold m-2" style="color:white;">Planificación de Eventos</h2>
   </div>
    <div class="d-flex align-items-center justify-content-end">
-    <img src="https://dac-ftd.github.io/pry-admin/img/unemi-logo.png" alt="Logo" class="logo-unemi">
+    <img src="img/unemi-logo.png" alt="Logo" class="logo-unemi">
   </div>
 </div>
 <div class="franja-naranja"></div>
@@ -149,22 +149,28 @@ const tiposPorCategoria = {
     "Otros"
   ],
   "Eventos Interinstitucionales": ["Firma de convenios interinstitucionales y/o de cooperación interinstitucional","Eventos que sean organizados por otras instituciones"],
+  
   "Eventos Culturales y Deportivos": ["Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Novatada Cultural Institucional","Campeonatos internos y externos"]
 };
 
 // Espacios permitidos por tipo de evento
 const eventosPorEspacio = {
   "Auditorio W": [
-    "Sesión Solemne de Aniversario Institucional", "Audiencia Pública de Rendición de Cuentas", "Aniversario de fundación de las facultades",
-    "Ceremonia Honoris Causa", "Ceremonias de graduación de grado y posgrado", "Congresos", "Socialización",
-    "Entrega de Reconocimiento", "Firma de convenios", "Momento Cívico", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Eventos que sean organizados por otras instituciones",
-  ],
+    "Sesión Solemne de Aniversario Institucional", "Audiencia Pública de Rendición de Cuentas", "Aniversario de fundación de las facultades","Ceremonia Honoris Causa", "Ceremonias de graduación de grado y posgrado", "Socialización",
+    "Entrega de Reconocimiento", "Firma de convenios", "Momento Cívico", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Eventos que sean organizados por otras instituciones", "Congresos","Seminarios","Simposios","Encuentros","Talleres o jornadas","Otros"],
+
   "Plazoleta": ["Ceremonia de bienvenida al inicio de periodo académico", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Casas abiertas de las facultades"],
+
   "Ágora del Corredor Cultural": ["Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP", "Novatada Cultural Institucional", "Casas abiertas de las facultades"],
-  "Auditorio V": ["Congresos", "Socialización", "Entrega de Reconocimiento"],
-  "Auditorio A": ["Congresos", "Socialización", "Festival Internacional de Teatro Uniendo Pueblos FITUP","Entrega de Reconocimiento"],
+
+  "Auditorio V": ["Socialización", "Entrega de Reconocimiento", "Congresos","Seminarios","Simposios","Encuentros","Talleres o jornadas","Otros"],
+
+  "Auditorio A": ["Socialización", "Festival Internacional de Teatro Uniendo Pueblos FITUP","Entrega de Reconocimiento", "Congresos","Seminarios","Simposios","Encuentros","Talleres o jornadas","Otros"],
+
   "Plaza de Integración": ["Ceremonia de bienvenida al inicio de periodo académico", "Casas abiertas de las facultades","Ferias emprendedoras", "Festival Internacional de Teatro Uniendo Pueblos FITUP","Novatada Cultural Institucional"],
+
   "Polideportivo": ["Campeonatos internos y externos"],
+
   "Estadio Universitario": ["Campeonatos internos y externos"]
 };
 
